@@ -1,10 +1,10 @@
-#PassKit
+# PassKit
 This is a library for generating Apple Wallet PKPasses.
 
-##How to use
+## How to use
 This library was heavily inspired by [drallgood's jpasskit library](https://github.com/drallgood/jpasskit) which was written in Java, so the objects and functions are very similar to the ones available on jpasskit.
 
-###Define a pass
+### Define a pass
 To define a pass you use the `Pass` struct, which represents the [pass.json](https://developer.apple.com/library/archive/documentation/UserExperience/Reference/PassKit_Bundle/Chapters/TopLevel.html#//apple_ref/doc/uid/TP40012026-CH2-SW1) file. This struct is modeled as closely as possible to the json file, so adding data is straightforward:
 
 ```go
@@ -38,7 +38,7 @@ p := passkit.Pass{
 }
 ```
 
-###Templates
+### Templates
 Usually, passes contain additional information that need to be included in the final, signed pass, e.g.
 * Images (icons, logos, background images)
 * Translations
@@ -47,7 +47,7 @@ These templates are defined in the [apple wallet developer documentation](https:
 
 To create the pass structure you need a `PassTemplate` instance, either using streams (with `InMemoryPassTemplate`) or files (with `FolderPassTemplate`).
 
-####Using files
+#### Using files
 To load the pass with files in the file system you create an instance of `FolderPassTemplate` passing the absolute file path of the folder:
 
 ```go
@@ -56,7 +56,7 @@ folderTemplate := passkit.NewFolderPassTemplate("/home/user/pass")
 
 When building the pass the files in the folder will be added.
 
-####Using streams (In Memory)
+#### Using streams (In Memory)
 The second approach is more flexible, having the option of loading files using data streams:
 
 ```go
@@ -70,7 +70,7 @@ err := memTemplate.AddAllFiles("/home/user/pass")
 ```
 **Note**: There are no checks, that the content of a provided file is valid. So if you'd provide a PDF file but store it as icon.png, it will not work.
 
-###Signing and zipping a pass
+### Signing and zipping a pass
 To create a pkpass file you need to use a `Signer`. There are two types of signers:
 * FileBasedSigner (uses a temp folder to create the zip file)
 * MemoryBasedSigner (creates the zip on memory as bytes)
