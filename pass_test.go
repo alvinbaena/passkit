@@ -888,7 +888,7 @@ func TestPass_InvalidGroupIdentifier(t *testing.T) {
 
 func TestPass_SetForegroundColorHex(t *testing.T) {
 	pass := getBasicPass()
-	pass.SetForegroundColorHex("#000000")
+	_ = pass.SetForegroundColorHex("#000000")
 
 	if pass.ForegroundColor != "rgb(0,0,0)" {
 		t.Errorf("Foreground color invalid")
@@ -907,7 +907,7 @@ func TestPass_SetInvalidForegroundColorHex(t *testing.T) {
 
 func TestPass_SetBackgroundColorHex(t *testing.T) {
 	pass := getBasicPass()
-	pass.SetBackgroundColorHex("#000000")
+	_ = pass.SetBackgroundColorHex("#000000")
 
 	if pass.BackgroundColor != "rgb(0,0,0)" {
 		t.Errorf("Background color invalid")
@@ -926,7 +926,7 @@ func TestPass_SetInvalidBackgroundColorHex(t *testing.T) {
 
 func TestPass_SetLabelColorHex(t *testing.T) {
 	pass := getBasicPass()
-	pass.SetLabelColorHex("#000000")
+	_ = pass.SetLabelColorHex("#000000")
 
 	if pass.LabelColor != "rgb(0,0,0)" {
 		t.Errorf("Label color invalid")
@@ -945,7 +945,7 @@ func TestPass_SetInvalidLabelColorHex(t *testing.T) {
 
 func TestPass_SetForegroundColorRGB(t *testing.T) {
 	pass := getBasicPass()
-	pass.SetForegroundColorRGB(0, 0, 0)
+	_ = pass.SetForegroundColorRGB(0, 0, 0)
 
 	if pass.ForegroundColor != "rgb(0,0,0)" {
 		t.Errorf("Foreground color invalid")
@@ -954,7 +954,7 @@ func TestPass_SetForegroundColorRGB(t *testing.T) {
 
 func TestPass_SetBackgroundColorRGB(t *testing.T) {
 	pass := getBasicPass()
-	pass.SetBackgroundColorRGB(0, 0, 0)
+	_ = pass.SetBackgroundColorRGB(0, 0, 0)
 
 	if pass.BackgroundColor != "rgb(0,0,0)" {
 		t.Errorf("Foreground color invalid")
@@ -963,7 +963,7 @@ func TestPass_SetBackgroundColorRGB(t *testing.T) {
 
 func TestPass_SetLabelColorRGB(t *testing.T) {
 	pass := getBasicPass()
-	pass.SetLabelColorRGB(0, 0, 0)
+	_ = pass.SetLabelColorRGB(0, 0, 0)
 
 	if pass.LabelColor != "rgb(0,0,0)" {
 		t.Errorf("Foreground color invalid")

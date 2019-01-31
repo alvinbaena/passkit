@@ -96,7 +96,7 @@ func verify(cert *x509.Certificate) error {
 
 func signManifestFile(manifestJson []byte, i *SigningInformation) ([]byte, error) {
 	if manifestJson == nil {
-		return nil, fmt.Errorf("manifestJson has tobe present")
+		return nil, fmt.Errorf("manifestJson has to be present")
 	}
 
 	s, err := pkcs7.NewSignedData(manifestJson)

@@ -63,7 +63,7 @@ func (f *fileSigner) CreateSignedAndZippedPersonalizedPassArchive(p *Pass, pz *P
 	}
 
 	//Fail silently
-	os.RemoveAll(dir)
+	_ = os.RemoveAll(dir)
 	return z, nil
 }
 
