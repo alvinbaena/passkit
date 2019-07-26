@@ -104,6 +104,7 @@ type Pass struct {
 	ExpirationDate             *time.Time             `json:"expirationDate,omitempty"`
 	Voided                     bool                   `json:"voided,omitempty"`
 	Nfc                        *NFC                   `json:"nfc,omitempty"`
+	SharingProhibited          bool                   `json:"sharingProhibited,omitempty"`
 
 	//Private
 	associatedApps []PWAssociatedApp `json:"-"`
