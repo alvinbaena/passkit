@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/fullsailor/pkcs7"
 	"golang.org/x/crypto/pkcs12"
-	"io/ioutil"
+	"os"
 )
 
 const (
@@ -29,12 +29,12 @@ type SigningInformation struct {
 }
 
 func LoadSigningInformationFromFiles(pkcs12KeyStoreFilePath, keyStorePassword, appleWWDRCAFilePath string) (*SigningInformation, error) {
-	p12, err := ioutil.ReadFile(pkcs12KeyStoreFilePath)
+	p12, err := os.ReadFile(pkcs12KeyStoreFilePath)
 	if err != nil {
 		return nil, err
 	}
 
-	ca, err := ioutil.ReadFile(appleWWDRCAFilePath)
+	ca, err := os.ReadFile(appleWWDRCAFilePath)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +72,7 @@ func LoadSigningInformationFromBytes(pkcs12KeyStoreFile []byte, keyStorePassword
 
 // verify checks if a certificate has expired
 func verify(cert *x509.Certificate) error {
-	_, err := cert.Verify(x509.VerifyOptions{})
+	_, err := cert.Verify(x509.VerifyOptions{Roots: x509.NewCertPool()})
 	if err == nil {
 		return nil
 	}
