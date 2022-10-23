@@ -479,8 +479,9 @@ func (a *PWAssociatedApp) GetValidationErrors() []string {
 }
 
 type NFC struct {
-	Message             string `json:"message,omitempty"`
-	EncryptionPublicKey string `json:"encryptionPublicKey,omitempty"`
+	Message                string `json:"message,omitempty"`
+	EncryptionPublicKey    string `json:"encryptionPublicKey,omitempty"`
+	RequiresAuthentication bool   `json:"requiresAuthentication,omitempty"`
 }
 
 type Personalization struct {
