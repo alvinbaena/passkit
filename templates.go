@@ -1,7 +1,7 @@
 package passkit
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -39,19 +39,19 @@ type PassTemplate interface {
 	GetAllFiles() (map[string][]byte, error)
 }
 
-type folderPassTemplate struct {
+type FolderPassTemplate struct {
 	templateDir string
 }
 
-func NewFolderPassTemplate(templateDir string) *folderPassTemplate {
-	return &folderPassTemplate{templateDir: templateDir}
+func NewFolderPassTemplate(templateDir string) *FolderPassTemplate {
+	return &FolderPassTemplate{templateDir: templateDir}
 }
 
-func (f *folderPassTemplate) ProvisionPassAtDirectory(tmpDirPath string) error {
+func (f *FolderPassTemplate) ProvisionPassAtDirectory(tmpDirPath string) error {
 	return copyDir(f.templateDir, tmpDirPath)
 }
 
-func (f *folderPassTemplate) GetAllFiles() (map[string][]byte, error) {
+func (f *FolderPassTemplate) GetAllFiles() (map[string][]byte, error) {
 	loaded, err := loadDir(f.templateDir)
 	if err != nil {
 		return nil, err
@@ -65,15 +65,15 @@ func (f *folderPassTemplate) GetAllFiles() (map[string][]byte, error) {
 	return ret, err
 }
 
-type inMemoryPassTemplate struct {
+type InMemoryPassTemplate struct {
 	files map[string][]byte
 }
 
-	func NewInMemoryPassTemplate() *inMemoryPassTemplate {
-	return &inMemoryPassTemplate{files: make(map[string][]byte)}
+func NewInMemoryPassTemplate() *InMemoryPassTemplate {
+	return &InMemoryPassTemplate{files: make(map[string][]byte)}
 }
 
-func (m *inMemoryPassTemplate) ProvisionPassAtDirectory(tmpDirPath string) error {
+func (m *InMemoryPassTemplate) ProvisionPassAtDirectory(tmpDirPath string) error {
 	dst := filepath.Clean(tmpDirPath)
 
 	_, err := os.Stat(dst)
@@ -87,9 +87,9 @@ func (m *inMemoryPassTemplate) ProvisionPassAtDirectory(tmpDirPath string) error
 	}
 
 	for file, d := range m.files {
-		err = ioutil.WriteFile(filepath.Join(dst, string(file)), d, 0644)
+		err = os.WriteFile(filepath.Join(dst, string(file)), d, 0644)
 		if err != nil {
-			os.RemoveAll(dst)
+			_ = os.RemoveAll(dst)
 			return err
 		}
 	}
@@ -97,19 +97,19 @@ func (m *inMemoryPassTemplate) ProvisionPassAtDirectory(tmpDirPath string) error
 	return nil
 }
 
-func (m *inMemoryPassTemplate) GetAllFiles() (map[string][]byte, error) {
+func (m *InMemoryPassTemplate) GetAllFiles() (map[string][]byte, error) {
 	return m.files, nil
 }
 
-func (m *inMemoryPassTemplate) AddFileBytes(name string, data []byte) {
+func (m *InMemoryPassTemplate) AddFileBytes(name string, data []byte) {
 	m.files[name] = data
 }
 
-func (m *inMemoryPassTemplate) AddFileBytesLocalized(name, locale string, data []byte) {
+func (m *InMemoryPassTemplate) AddFileBytesLocalized(name, locale string, data []byte) {
 	m.files[m.pathForLocale(name, locale)] = data
 }
 
-func (m *inMemoryPassTemplate) downloadFile(u url.URL) ([]byte, error) {
+func (m *InMemoryPassTemplate) downloadFile(u url.URL) ([]byte, error) {
 	timeout := time.Duration(10 * time.Second)
 	client := http.Client{
 		Timeout: timeout,
@@ -119,9 +119,11 @@ func (m *inMemoryPassTemplate) downloadFile(u url.URL) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(response.Body)
 
-	b, err := ioutil.ReadAll(response.Body)
+	b, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -129,7 +131,7 @@ func (m *inMemoryPassTemplate) downloadFile(u url.URL) ([]byte, error) {
 	return b, nil
 }
 
-func (m *inMemoryPassTemplate) AddFileFromURL(name string, u url.URL) error {
+func (m *InMemoryPassTemplate) AddFileFromURL(name string, u url.URL) error {
 	b, err := m.downloadFile(u)
 	if err != nil {
 		return err
@@ -139,7 +141,7 @@ func (m *inMemoryPassTemplate) AddFileFromURL(name string, u url.URL) error {
 	return nil
 }
 
-func (m *inMemoryPassTemplate) AddFileFromURLLocalized(name, locale string, u url.URL) error {
+func (m *InMemoryPassTemplate) AddFileFromURLLocalized(name, locale string, u url.URL) error {
 	b, err := m.downloadFile(u)
 	if err != nil {
 		return err
@@ -149,7 +151,7 @@ func (m *inMemoryPassTemplate) AddFileFromURLLocalized(name, locale string, u ur
 	return nil
 }
 
-func (m *inMemoryPassTemplate) AddAllFiles(directoryWithFilesToAdd string) error {
+func (m *InMemoryPassTemplate) AddAllFiles(directoryWithFilesToAdd string) error {
 	src := filepath.Clean(directoryWithFilesToAdd)
 	loaded, err := loadDir(src)
 	if err != nil {
@@ -163,7 +165,7 @@ func (m *inMemoryPassTemplate) AddAllFiles(directoryWithFilesToAdd string) error
 	return nil
 }
 
-func (m *inMemoryPassTemplate) pathForLocale(name string, locale string) string {
+func (m *InMemoryPassTemplate) pathForLocale(name string, locale string) string {
 	if strings.TrimSpace(locale) == "" {
 		return name
 	}

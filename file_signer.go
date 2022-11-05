@@ -6,7 +6,6 @@ import (
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -23,7 +22,7 @@ func (f *fileSigner) CreateSignedAndZippedPassArchive(p *Pass, t PassTemplate, i
 }
 
 func (f *fileSigner) CreateSignedAndZippedPersonalizedPassArchive(p *Pass, pz *Personalization, t PassTemplate, i *SigningInformation) ([]byte, error) {
-	dir, err := ioutil.TempDir("", "pass")
+	dir, err := os.MkdirTemp("", "pass")
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +51,7 @@ func (f *fileSigner) CreateSignedAndZippedPersonalizedPassArchive(p *Pass, pz *P
 		return nil, err
 	}
 
-	err = ioutil.WriteFile(signatureFileName, signedMfst, 0644)
+	err = os.WriteFile(signatureFileName, signedMfst, 0644)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +80,7 @@ func (f *fileSigner) createPassJSONFile(p *Pass, tmpDir string) error {
 		return err
 	}
 
-	return ioutil.WriteFile(filepath.Join(tmpDir, passJsonFileName), b, 0644)
+	return os.WriteFile(filepath.Join(tmpDir, passJsonFileName), b, 0644)
 }
 
 func (f *fileSigner) createPersonalizationJSONFile(pz *Personalization, tmpDir string) error {
@@ -90,7 +89,7 @@ func (f *fileSigner) createPersonalizationJSONFile(pz *Personalization, tmpDir s
 		return err
 	}
 
-	return ioutil.WriteFile(filepath.Join(tmpDir, personalizationJsonFileName), b, 0644)
+	return os.WriteFile(filepath.Join(tmpDir, personalizationJsonFileName), b, 0644)
 }
 
 func (f *fileSigner) createManifestJSONFile(tmpDir string) ([]byte, error) {
@@ -104,7 +103,7 @@ func (f *fileSigner) createManifestJSONFile(tmpDir string) ([]byte, error) {
 		return nil, err
 	}
 
-	err = ioutil.WriteFile(manifestJsonFileName, bm, 0644)
+	err = os.WriteFile(manifestJsonFileName, bm, 0644)
 	if err != nil {
 		return nil, err
 	}
