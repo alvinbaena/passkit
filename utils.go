@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 )
@@ -19,6 +18,7 @@ func copyFile(src, dst string) (err error) {
 	if err != nil {
 		return
 	}
+	//goland:noinspection ALL
 	defer in.Close()
 
 	out, err := os.Create(dst)
@@ -82,7 +82,7 @@ func copyDir(src string, dst string) (err error) {
 		return
 	}
 
-	entries, err := ioutil.ReadDir(src)
+	entries, err := os.ReadDir(src)
 	if err != nil {
 		return
 	}
@@ -98,7 +98,7 @@ func copyDir(src string, dst string) (err error) {
 			}
 		} else {
 			// Skip symlinks.
-			if entry.Mode()&os.ModeSymlink != 0 {
+			if entry.Type()&os.ModeSymlink != 0 {
 				continue
 			}
 
@@ -126,7 +126,7 @@ func loadDir(src string) (files map[string][]byte, err error) {
 		return nil, fmt.Errorf("source is not a directory")
 	}
 
-	entries, err := ioutil.ReadDir(src)
+	entries, err := os.ReadDir(src)
 	if err != nil {
 		return nil, err
 	}
@@ -141,11 +141,11 @@ func loadDir(src string) (files map[string][]byte, err error) {
 			}
 		} else {
 			// Skip symlinks.
-			if entry.Mode()&os.ModeSymlink != 0 {
+			if entry.Type()&os.ModeSymlink != 0 {
 				continue
 			}
 
-			f, err := ioutil.ReadFile(srcPath)
+			f, err := os.ReadFile(srcPath)
 			if err != nil {
 				return nil, err
 			}
@@ -163,14 +163,14 @@ func loadDir(src string) (files map[string][]byte, err error) {
 
 func addFiles(w *zip.Writer, basePath, baseInZip string) error {
 	// Open the Directory
-	files, err := ioutil.ReadDir(basePath)
+	files, err := os.ReadDir(basePath)
 	if err != nil {
 		return err
 	}
 
 	for _, file := range files {
 		if !file.IsDir() {
-			dat, err := ioutil.ReadFile(basePath + file.Name())
+			dat, err := os.ReadFile(basePath + file.Name())
 			if err != nil {
 				return err
 			}

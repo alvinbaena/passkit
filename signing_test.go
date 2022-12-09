@@ -1,12 +1,12 @@
 package passkit
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 )
 
-func testSigner_LoadSigningInformationFromFiles(t *testing.T) {
+func TestSigner_LoadSigningInformationFromFiles(t *testing.T) {
 	signingInfo, err := LoadSigningInformationFromFiles(filepath.Join("test", "passbook", "passkit.p12"), "password", filepath.Join("test", "passbook", "ca.pem"))
 	if err != nil {
 		t.Errorf("could not load signing info. %v", err)
@@ -17,7 +17,7 @@ func testSigner_LoadSigningInformationFromFiles(t *testing.T) {
 		t.Errorf("should fail")
 	}
 
-	passJson, err := ioutil.ReadFile(filepath.Join("test", "pass2.json"))
+	passJson, err := os.ReadFile(filepath.Join("test", "pass2.json"))
 	if err != nil {
 		t.Errorf("could not load pass json file. %v", err)
 	}

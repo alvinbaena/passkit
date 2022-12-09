@@ -107,7 +107,7 @@ type Pass struct {
 	SharingProhibited          bool                   `json:"sharingProhibited,omitempty"`
 
 	//Private
-	associatedApps []PWAssociatedApp `json:"-"`
+	associatedApps []PWAssociatedApp
 }
 
 func (p *Pass) SetForegroundColorHex(hex string) error {

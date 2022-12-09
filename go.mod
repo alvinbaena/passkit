@@ -1,4 +1,4 @@
-module passkit
+module github.com/alvinbaena/passkit
 
 go 1.17
 
