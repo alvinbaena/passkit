@@ -1,6 +1,6 @@
-module github.com/alvinbaena/passkit
+module github.com/IsaacHDS/passkit
 
-go 1.17
+go 1.20
 
 require (
 	github.com/fullsailor/pkcs7 v0.0.0-20190404230743-d7302db945fa

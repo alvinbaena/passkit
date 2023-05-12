@@ -3,10 +3,11 @@ package passkit
 import (
 	"encoding/json"
 	"fmt"
-	"gopkg.in/go-playground/colors.v1"
 	"strconv"
 	"strings"
 	"time"
+
+	"gopkg.in/go-playground/colors.v1"
 )
 
 type BarcodeFormat string
