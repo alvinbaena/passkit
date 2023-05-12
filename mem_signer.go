@@ -38,6 +38,10 @@ func (m *memorySigner) CreateSignedAndZippedPersonalizedPassArchive(p *Pass, pz 
 	files[passJsonFileName] = pb
 
 	if pz != nil {
+		if !pz.IsValid() {
+			return nil, fmt.Errorf("%v", pz.GetValidationErrors())
+		}
+
 		pzb, err := pz.toJSON()
 		if err != nil {
 			return nil, err
