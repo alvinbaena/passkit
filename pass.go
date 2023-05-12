@@ -105,6 +105,7 @@ type Pass struct {
 	Voided                     bool                   `json:"voided,omitempty"`
 	Nfc                        *NFC                   `json:"nfc,omitempty"`
 	SharingProhibited          bool                   `json:"sharingProhibited,omitempty"`
+	Semantics                  map[string]interface{} `json:"semantics,omitempty"`
 
 	//Private
 	associatedApps []PWAssociatedApp

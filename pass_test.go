@@ -602,6 +602,7 @@ func getBasicPass() Pass {
 		AuthenticationToken:        "asldadilno21o31n41lkasndio123",
 		Generic:                    &GenericPass{PrimaryFields: []Field{f}},
 		AssociatedStoreIdentifiers: []int64{123},
+		Semantics:                  map[string]interface{}{"silenceRequested": true},
 	}
 }
 
