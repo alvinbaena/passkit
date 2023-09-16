@@ -21,10 +21,11 @@ func (m *memorySigner) CreateSignedAndZippedPassArchive(p *Pass, t PassTemplate,
 }
 
 func (m *memorySigner) CreateSignedAndZippedPersonalizedPassArchive(p *Pass, pz *Personalization, t PassTemplate, i *SigningInformation) ([]byte, error) {
-	files, err := t.GetAllFiles()
+	originalFiles, err := t.GetAllFiles()
 	if err != nil {
 		return nil, err
 	}
+	files := m.makeFilesCopy(originalFiles)
 
 	if !p.IsValid() {
 		return nil, fmt.Errorf("%v", p.GetValidationErrors())
@@ -111,4 +112,13 @@ func (m *memorySigner) createZipFile(files map[string][]byte) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+func (m *memorySigner) makeFilesCopy(files map[string][]byte) map[string][]byte {
+	filesCopy := make(map[string][]byte, len(files))
+	for k := range files {
+		filesCopy[k] = files[k]
+	}
+
+	return filesCopy
 }
