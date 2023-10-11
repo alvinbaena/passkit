@@ -385,6 +385,7 @@ type Field struct {
 	TimeStyle         DateStyle          `json:"timeStyle,omitempty"`
 	IsRelative        bool               `json:"isRelative,omitempty"`
 	IgnoreTimeZone    bool               `json:"ignoresTimeZone,omitempty"`
+	Row               int                `json:"row,omitempty"`
 }
 
 func (f *Field) IsValid() bool {
@@ -438,6 +439,10 @@ func (f *Field) GetValidationErrors() []string {
 		default:
 			validationErrors = append(validationErrors, "Field: When using currencies, the values have to be numbers")
 		}
+	}
+
+	if f.Row != 0 && f.Row != 1 {
+		validationErrors = append(validationErrors, "Row must be 0 or 1")
 	}
 
 	return validationErrors
