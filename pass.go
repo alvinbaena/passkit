@@ -109,7 +109,7 @@ type Pass struct {
 	Voided                     bool                   `json:"voided,omitempty"`
 	Nfc                        *NFC                   `json:"nfc,omitempty"`
 	SharingProhibited          bool                   `json:"sharingProhibited,omitempty"`
-	Semantics                  []SemanticTag          `json:"semantics,omitempty"`
+	Semantics                  *SemanticTag           `json:"semantics,omitempty"`
 
 	//Private
 	associatedApps []PWAssociatedApp
@@ -249,12 +249,8 @@ func (p *Pass) GetValidationErrors() []string {
 		}
 	}
 
-	if p.Semantics != nil {
-		for _, s := range p.Semantics {
-			if !s.IsValid() {
-				validationErrors = append(validationErrors, s.GetValidationErrors()...)
-			}
-		}
+	if p.Semantics != nil && !p.Semantics.IsValid() {
+		validationErrors = append(validationErrors, p.Semantics.GetValidationErrors()...)
 	}
 
 	return validationErrors
@@ -385,6 +381,7 @@ type Field struct {
 	TimeStyle         DateStyle          `json:"timeStyle,omitempty"`
 	IsRelative        bool               `json:"isRelative,omitempty"`
 	IgnoreTimeZone    bool               `json:"ignoresTimeZone,omitempty"`
+	Semantics         *SemanticTag       `json:"semantics,omitempty"`
 	Row               int                `json:"row,omitempty"`
 }
 
@@ -439,6 +436,10 @@ func (f *Field) GetValidationErrors() []string {
 		default:
 			validationErrors = append(validationErrors, "Field: When using currencies, the values have to be numbers")
 		}
+	}
+
+	if f.Semantics != nil && !f.Semantics.IsValid() {
+		validationErrors = append(validationErrors, f.Semantics.GetValidationErrors()...)
 	}
 
 	if f.Row != 0 && f.Row != 1 {
