@@ -4,9 +4,10 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"github.com/fullsailor/pkcs7"
-	"golang.org/x/crypto/pkcs12"
 	"os"
+
+	"go.mozilla.org/pkcs7"
+	"golang.org/x/crypto/pkcs12"
 )
 
 const (
@@ -105,6 +106,7 @@ func signManifestFile(manifestJson []byte, i *SigningInformation) ([]byte, error
 	}
 
 	s.AddCertificate(i.appleWWDRCACert)
+
 	err = s.AddSigner(i.signingCert, i.privateKey, pkcs7.SignerInfoConfig{})
 	if err != nil {
 		return nil, err
