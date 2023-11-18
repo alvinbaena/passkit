@@ -52,7 +52,7 @@ func LoadSigningInformationFromBytes(pkcs12KeyStoreFile []byte, keyStorePassword
 	}
 
 	if err := verify(cer); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error decoding pkcs12: %w", err)
 	}
 
 	wwdrca, err := x509.ParseCertificate(appleWWDRCAFile)
@@ -61,7 +61,7 @@ func LoadSigningInformationFromBytes(pkcs12KeyStoreFile []byte, keyStorePassword
 	}
 
 	if err := verify(wwdrca); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error verifying Apple WWDRCAFile: %w", err)
 	}
 
 	info.privateKey = pk
