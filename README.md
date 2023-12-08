@@ -9,18 +9,33 @@ To define a pass you use the `Pass` struct, which represents the [pass.json](htt
 
 ```go
 c := passkit.NewBoardingPass(passkit.TransitTypeAir)
-field := passkit.Field{
-    Key: "key",
-    Label: "label",
-    Value:"value",
-}
 
 // Utility functions for adding fields to a pass
-c.AddHeaderField(field)
-c.AddPrimaryFields(field)
-c.AddSecondaryFields(field)
-c.AddAuxiliaryFields(field)
-c.AddBackFields(field)
+c.AddHeaderField(passkit.Field{
+    Key: "your_head_key",
+    Label: "your_displayable_head_label",
+    Value:"value",
+})
+c.AddPrimaryFields(passkit.Field{
+    Key: "your_prim_key",
+    Label: "your_displayable_prim_label",
+    Value:"value",
+})
+c.AddSecondaryFields(passkit.Field{
+    Key: "your_sec_key",
+    Label: "your_displayable_sec_label",
+    Value:"value",
+})
+c.AddAuxiliaryFields(passkit.Field{
+    Key: "your_aux_key",
+    Label: "your_displayable_aux_label",
+    Value:"value",
+})
+c.AddBackFields(passkit.Field{
+    Key: "your_back_key",
+    Label: "your_displayable_back_label",
+    Value:"value",
+})
 
 pass := passkit.Pass{
     FormatVersion:       1,
