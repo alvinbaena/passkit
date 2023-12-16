@@ -110,7 +110,7 @@ func (m *InMemoryPassTemplate) AddFileBytesLocalized(name, locale string, data [
 }
 
 func (m *InMemoryPassTemplate) downloadFile(u url.URL) ([]byte, error) {
-	timeout := time.Duration(10 * time.Second)
+	timeout := 10 * time.Second
 	client := http.Client{
 		Timeout: timeout,
 	}
