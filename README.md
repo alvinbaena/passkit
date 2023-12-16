@@ -1,5 +1,4 @@
 # PassKit
-
 This is a library for generating Apple Wallet PKPasses.
 
 ## How to use
@@ -15,18 +14,33 @@ possible to the json file, so adding data is straightforward:
 
 ```go
 c := passkit.NewBoardingPass(passkit.TransitTypeAir)
-field := passkit.Field{
-    Key:   "key",
-    Label: "label",
-    Value: "value",
-}
 
 // Utility functions for adding fields to a pass
-c.AddHeaderField(field)
-c.AddPrimaryFields(field)
-c.AddSecondaryFields(field)
-c.AddAuxiliaryFields(field)
-c.AddBackFields(field)
+c.AddHeaderField(passkit.Field{
+    Key: "your_head_key",
+    Label: "your_displayable_head_label",
+    Value:"value",
+})
+c.AddPrimaryFields(passkit.Field{
+    Key: "your_prim_key",
+    Label: "your_displayable_prim_label",
+    Value:"value",
+})
+c.AddSecondaryFields(passkit.Field{
+    Key: "your_sec_key",
+    Label: "your_displayable_sec_label",
+    Value:"value",
+})
+c.AddAuxiliaryFields(passkit.Field{
+    Key: "your_aux_key",
+    Label: "your_displayable_aux_label",
+    Value:"value",
+})
+c.AddBackFields(passkit.Field{
+    Key: "your_back_key",
+    Label: "your_displayable_back_label",
+    Value:"value",
+})
 
 boarding := time.Date(2023, 1, 1, 23, 50, 00, 00, time.UTC)
 

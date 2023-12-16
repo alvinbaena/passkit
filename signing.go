@@ -4,9 +4,10 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
-	"github.com/fullsailor/pkcs7"
-	"golang.org/x/crypto/pkcs12"
 	"os"
+
+	"go.mozilla.org/pkcs7"
+	"software.sslmate.com/src/go-pkcs12"
 )
 
 const (
@@ -51,7 +52,7 @@ func LoadSigningInformationFromBytes(pkcs12KeyStoreFile []byte, keyStorePassword
 	}
 
 	if err := verify(cer); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error decoding pkcs12: %w", err)
 	}
 
 	wwdrca, err := x509.ParseCertificate(appleWWDRCAFile)
@@ -60,7 +61,7 @@ func LoadSigningInformationFromBytes(pkcs12KeyStoreFile []byte, keyStorePassword
 	}
 
 	if err := verify(wwdrca); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error verifying Apple WWDRCAFile: %w", err)
 	}
 
 	info.privateKey = pk
@@ -105,6 +106,7 @@ func signManifestFile(manifestJson []byte, i *SigningInformation) ([]byte, error
 	}
 
 	s.AddCertificate(i.appleWWDRCACert)
+
 	err = s.AddSigner(i.signingCert, i.privateKey, pkcs7.SignerInfoConfig{})
 	if err != nil {
 		return nil, err
