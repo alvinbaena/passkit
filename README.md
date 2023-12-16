@@ -172,4 +172,4 @@ After this step the pass bundle is ready to be distributed as you see fit.
 
 Right now I'm not really working on a project where this library is being actively used, so any bugs or weird behaviour
 is hard for me to detect and fix. That's why this project is open to contributions, just make a Pull Request with fixes
-or any other feature requests, and I will probably accept it and merge it (I will at least try to check the code).
+or any other feature requests and I will probably accept it and merge it (I will at least try to check the code is ok).
