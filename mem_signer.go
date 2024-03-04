@@ -6,7 +6,6 @@ import (
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 )
 
 type memorySigner struct {
@@ -86,7 +85,7 @@ func (m *memorySigner) hashFiles(files map[string][]byte) (map[string]string, er
 	ret := make(map[string]string)
 	for name, data := range files {
 		hash := sha1.Sum(data)
-		ret[filepath.Base(name)] = fmt.Sprintf("%x", hash)
+		ret[name] = fmt.Sprintf("%x", hash)
 	}
 
 	return ret, nil
