@@ -81,30 +81,32 @@ pass := passkit.Pass{
 
 ### Templates
 
-Usually, passes contain additional information that needs to be included in the final, signed pass, e.g.
+Passes contain additional data that has to be included in the final, signed pass, like images (icons, 
+logos, background images) and translations. Usually, passes of the same type share images and translations. This shared
+information is what I call a `PassTemplate`, so that every generated pass of a type have the same images and whatnot.
 
-* Images (icons, logos, background images)
-* Translations
+The template contents are defined as described by the 
+[apple wallet developer documentation](https://developer.apple.com/documentation/walletpasses/creating_the_source_for_a_pass).
 
-These templates are defined in the [apple wallet developer documentation](https://developer.apple.com/documentation/walletpasses/creating_the_source_for_a_pass).
-
-To create the pass structure you need a `PassTemplate` instance, either using streams (with `InMemoryPassTemplate`) or
-files (with `FolderPassTemplate`).
+To create the pass structure you need a `PassTemplate` instance, either with streams (using `InMemoryPassTemplate`) or with
+files (using `FolderPassTemplate`).
 
 #### Using files
 
 To create the pass bundle create an instance of `FolderPassTemplate` using the absolute file path of the folder
-containing the files:
+that contain the pass images and translations:
 
 ```go
 template := passkit.NewFolderPassTemplate("/home/user/pass")
 ```
 
-All the files in the folder will be loaded exactly as provided.
+All the files in the folder will be added to the bundled pass exactly as provided, which means they _must_ align
+to the naming and location conventions described in the 
+[apple wallet developer documentation](https://developer.apple.com/documentation/walletpasses/creating_the_source_for_a_pass).
 
 #### Using streams (In Memory)
 
-The second approach is more flexible, having the option of loading files using data streams or directly downloaded from
+The second approach is more flexible, having the option of loading files from data streams, or downloaded from
 a public URL:
 
 ```go
@@ -118,22 +120,22 @@ err := template.AddAllFiles("/home/user/pass")
 ```
 
 **Note**: There are no checks that the contents of a provided file are valid. If a PDF file is provided, but is
-referenced as icon.png, when viewing the pass on a device there will be issues. It also doesn't provide any
-authentication for the downloads, so the resources used must be public for the download to work as expected. The 
+named `icon.png`, when viewing the pass on a device it probably won't work. The `InMemoryPassTemplate` doesn't 
+provide any authentication for the downloads, so the URLs used must be public for the download to work as expected. The 
 downloads use a default `http.Client` without any SSL configuration, so if the download is from an HTTPS site the 
-certificate must be valid or the download will fail. 
+certificate must be valid in the system where the library is running, or the download will fail with a certificate error.
 
 ### Signing and zipping a pass
 
 As all passes [need to be signed when bundled](https://developer.apple.com/documentation/walletpasses/building_a_pass)
-we need to use a `Signer` instance. There are two types of signers:
+we need to use a `Signer` instance. There are two types of signer:
 
-* `FileBasedSigner`: uses a temp folder to store the signed zip file contents
-* `MemoryBasedSigner`: keeps the signed zip file contents in memory
+* `FileBasedSigner`: creates a temp folder to store the signed pass file contents.
+* `MemoryBasedSigner`: keeps the signed pass file contents in memory.
 
-To use any of the `Signer` instances you need an instance of `SigningInformation` to load the certificates used to
-generate the `signature`. There are two ways to obtain an instance. Either reading the certificates from the filesystem,
-or from already loaded bytes in memory:
+To use any of the `Signer` instances you need to provide an instance of `SigningInformation`. `SigningInformation` defines the 
+certificates used to generate the `signature` file bundled with every pass. There are two ways to obtain an instance. Either by  
+reading the certificates from the filesystem, or from already loaded bytes in memory:
 
 ```go
 // Using the certificate files from your filesystem
@@ -142,11 +144,13 @@ signInfo, err := passkit.LoadSigningInformationFromFiles("/home/user/pass_cert.p
 signInfo, err := passkit.LoadSigningInformationFromBytes(passCertBytes, "pass_cert_password", wwdrcaBytes)
 ```
 
-**Note**: When loading the signing information errors will be returned if the certificates are invalid (expired, not
-certificates, etc)
+**Important**: The provided certificates _must_ be encoded in DER form. If the files are encoded as PEM the signature generation 
+will fail. Errors will also be returned if the certificates are invalid (expired, not x509 certs, etc).
+
+## Bundling the pass
 
 Finally, to create the signed pass bundle you use the `Pass`, `Signer`, `SigningInformation`, and `PassTemplate`
-instances created previously, for example:
+instances created previously, like so:
 
 ```go
 signer := passkit.NewMemoryBasedSigner()
@@ -170,6 +174,7 @@ After this step the pass bundle is ready to be distributed as you see fit.
 
 ## Contributing
 
-Right now I'm not really working on a project where this library is being actively used, so any bugs or weird behaviour
-is hard for me to detect and fix. That's why this project is open to contributions, just make a Pull Request with fixes
-or any other feature requests and I will probably accept it and merge it (I will at least try to check the code is ok).
+Right now I'm not really working on a project where this library is being actively used, so any bugs are hard for me 
+to detect and fix. That's why this project is open to contributions. Just make a Pull Request with fixes
+or any other feature request, and I will probably accept them and merge them (I will at least look at your code before
+approving anything).
