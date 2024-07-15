@@ -2,9 +2,11 @@ package passkit
 
 import (
 	"crypto/x509"
+	"encoding/asn1"
 	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	"go.mozilla.org/pkcs7"
 	"software.sslmate.com/src/go-pkcs12"
@@ -107,11 +109,32 @@ func signManifestFile(manifestJson []byte, i *SigningInformation) ([]byte, error
 
 	s.AddCertificate(i.appleWWDRCACert)
 
-	err = s.AddSigner(i.signingCert, i.privateKey, pkcs7.SignerInfoConfig{})
+	signingTimeAttr, err := createSigningTimeAttribute()
+	if err != nil {
+		return nil, err
+	}
+
+	signerInfoConfig := pkcs7.SignerInfoConfig{
+		ExtraSignedAttributes: []pkcs7.Attribute{signingTimeAttr},
+	}
+
+	err = s.AddSigner(i.signingCert, i.privateKey, signerInfoConfig)
 	if err != nil {
 		return nil, err
 	}
 
 	s.Detach()
 	return s.Finish()
+}
+
+func createSigningTimeAttribute() (pkcs7.Attribute, error) {
+	signingTimeBytes, err := asn1.Marshal(time.Now().UTC())
+	if err != nil {
+		return pkcs7.Attribute{}, err
+	}
+
+	return pkcs7.Attribute{
+		Type:  asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 7, 2},
+		Value: signingTimeBytes,
+	}, nil
 }
