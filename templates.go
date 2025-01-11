@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -67,6 +68,7 @@ func (f *FolderPassTemplate) GetAllFiles() (map[string][]byte, error) {
 
 type InMemoryPassTemplate struct {
 	files map[string][]byte
+	mu    sync.Mutex
 }
 
 func NewInMemoryPassTemplate() *InMemoryPassTemplate {
@@ -87,7 +89,7 @@ func (m *InMemoryPassTemplate) ProvisionPassAtDirectory(tmpDirPath string) error
 	}
 
 	for file, d := range m.files {
-		err = os.WriteFile(filepath.Join(dst, string(file)), d, 0644)
+		err = os.WriteFile(filepath.Join(dst, file), d, 0644)
 		if err != nil {
 			_ = os.RemoveAll(dst)
 			return err
@@ -102,10 +104,14 @@ func (m *InMemoryPassTemplate) GetAllFiles() (map[string][]byte, error) {
 }
 
 func (m *InMemoryPassTemplate) AddFileBytes(name string, data []byte) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.files[name] = data
 }
 
 func (m *InMemoryPassTemplate) AddFileBytesLocalized(name, locale string, data []byte) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.files[m.pathForLocale(name, locale)] = data
 }
 
@@ -137,6 +143,8 @@ func (m *InMemoryPassTemplate) AddFileFromURL(name string, u url.URL) error {
 		return err
 	}
 
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.files[name] = b
 	return nil
 }
@@ -147,6 +155,8 @@ func (m *InMemoryPassTemplate) AddFileFromURLLocalized(name, locale string, u ur
 		return err
 	}
 
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.files[m.pathForLocale(name, locale)] = b
 	return nil
 }
@@ -158,6 +168,8 @@ func (m *InMemoryPassTemplate) AddAllFiles(directoryWithFilesToAdd string) error
 		return err
 	}
 
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	for name, data := range loaded {
 		m.files[filepath.Base(name)] = data
 	}

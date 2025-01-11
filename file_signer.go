@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 type fileSigner struct {
+	mu sync.Mutex
 }
 
 func NewFileBasedSigner() Signer {
@@ -118,6 +120,9 @@ func (f *fileSigner) hashFiles(tmpDir string) (map[string]string, error) {
 	}
 
 	ret := make(map[string]string)
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
 	for name, data := range files {
 		hash := sha1.Sum(data)
 		ret[filepath.Base(name)] = fmt.Sprintf("%x", hash)

@@ -6,9 +6,11 @@ import (
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
+	"sync"
 )
 
 type memorySigner struct {
+	mu sync.Mutex
 }
 
 func NewMemoryBasedSigner() Signer {
@@ -24,6 +26,9 @@ func (m *memorySigner) CreateSignedAndZippedPersonalizedPassArchive(p *Pass, pz 
 	if err != nil {
 		return nil, err
 	}
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	files := m.makeFilesCopy(originalFiles)
 
 	if !p.IsValid() {
