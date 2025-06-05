@@ -4,12 +4,17 @@ import "time"
 
 // SemanticTag Representation of https://developer.apple.com/documentation/walletpasses/semantictags
 type SemanticTag struct {
+	AdditionalTicketAttributes     string                           `json:"additionalTicketAttributes,omitempty"`
+	AdmissionLevel                 string                           `json:"admissionLevel,omitempty"`
+	AdmissionLevelAbbreviation     string                           `json:"admissionLevelAbbreviation,omitempty"`
+	AlbumIDs                       []string                         `json:"albumIDs,omitempty"`
 	AirlineCode                    string                           `json:"airlineCode,omitempty"`
 	ArtistIds                      []string                         `json:"artistIDs,omitempty"`
+	AttendeeName                   string                           `json:"attendeeName,omitempty"`
 	AwayTeamAbbreviation           string                           `json:"awayTeamAbbreviation,omitempty"`
 	AwayTeamLocation               string                           `json:"awayTeamLocation,omitempty"`
 	AwayTeamName                   string                           `json:"awayTeamName,omitempty"`
-	Balance                        *SemanticTagCurrencyAmount       `json:"currency,omitempty"`
+	Balance                        *SemanticTagCurrencyAmount       `json:"balance,omitempty"`
 	BoardingGroup                  string                           `json:"boardingGroup,omitempty"`
 	BoardingSequenceNumber         string                           `json:"boardingSequenceNumber,omitempty"`
 	CarNumber                      string                           `json:"carNumber,omitempty"`
@@ -35,9 +40,12 @@ type SemanticTag struct {
 	DestinationTerminal            string                           `json:"destinationTerminal,omitempty"`
 	Duration                       *uint64                          `json:"duration,omitempty"`
 	EventEndDate                   *time.Time                       `json:"eventEndDate,omitempty"`
+	EventLiveMessage               string                           `json:"eventLiveMessage,omitempty"`
 	EventName                      string                           `json:"eventName,omitempty"`
 	EventStartDate                 *time.Time                       `json:"eventStartDate,omitempty"`
+	EventStartDateInfo             *SemanticTagEventDateInfo        `json:"eventStartDateInfo,omitempty"`
 	EventType                      EventType                        `json:"eventType,omitempty"`
+	EntranceDescription            string                           `json:"entranceDescription,omitempty"`
 	FlightCode                     string                           `json:"flightCode,omitempty"`
 	FlightNumber                   string                           `json:"flightNumber,omitempty"`
 	Genre                          string                           `json:"genre,omitempty"`
@@ -52,12 +60,14 @@ type SemanticTag struct {
 	OriginalBoardingDate           *time.Time                       `json:"originalBoardingDate,omitempty"`
 	OriginalDepartureDate          *time.Time                       `json:"originalDepartureDate,omitempty"`
 	PassengerName                  *SemanticTagPersonNameComponents `json:"passengerName,omitempty"`
-	PerformerNames                 string                           `json:"performerNames,omitempty"`
+	PerformerNames                 []string                         `json:"performerNames,omitempty"`
+	PlaylistIDs                    []string                         `json:"playlistIDs,omitempty"`
 	PriorityStatus                 string                           `json:"priorityStatus,omitempty"`
 	Seats                          []SemanticTagSeat                `json:"seats,omitempty"`
 	SecurityScreening              string                           `json:"securityScreening,omitempty"`
 	SilenceRequested               bool                             `json:"silenceRequested,omitempty"`
 	SportName                      string                           `json:"sportName,omitempty"`
+	TailgatingAllowed              bool                             `json:"tailgatingAllowed,omitempty"`
 	TotalPrice                     *SemanticTagCurrencyAmount       `json:"totalPrice,omitempty"`
 	TransitProvider                string                           `json:"transitProvider,omitempty"`
 	TransitStatus                  string                           `json:"transitStatus,omitempty"`
@@ -65,12 +75,23 @@ type SemanticTag struct {
 	VehicleName                    string                           `json:"vehicleName,omitempty"`
 	VehicleNumber                  string                           `json:"vehicleNumber,omitempty"`
 	VehicleType                    string                           `json:"vehicleType,omitempty"`
+	VenueBoxOfficeOpenDate         *time.Time                       `json:"venueBoxOfficeOpenDate,omitempty"`
+	VenueCloseDate                 *time.Time                       `json:"venueCloseDate,omitempty"`
+	VenueDoorsOpenDate             *time.Time                       `json:"venueDoorsOpenDate,omitempty"`
 	VenueEntrance                  string                           `json:"venueEntrance,omitempty"`
+	VenueEntranceDoor              string                           `json:"venueEntranceDoor,omitempty"`
+	VenueEntranceGate              string                           `json:"venueEntranceGate,omitempty"`
+	VenueEntrancePortal            string                           `json:"venueEntrancePortal,omitempty"`
+	VenueFanZoneOpenDate           *time.Time                       `json:"venueFanZoneOpenDate,omitempty"`
+	VenueGatesOpenDate             *time.Time                       `json:"venueGatesOpenDate,omitempty"`
 	VenueLocation                  *SemanticTagLocation             `json:"venueLocation,omitempty"`
 	VenueName                      string                           `json:"venueName,omitempty"`
+	VenueOpenDate                  *time.Time                       `json:"venueOpenDate,omitempty"`
+	VenueParkingLotsOpenDate       *time.Time                       `json:"venueParkingLotsOpenDate,omitempty"`
 	VenuePhoneNumber               string                           `json:"venuePhoneNumber,omitempty"`
+	VenueRegionName                string                           `json:"venueRegionName,omitempty"`
 	VenueRoom                      string                           `json:"venueRoom,omitempty"`
-	WifiAccess                     *SemanticTagWifiNetwork          `json:"wifiAccess,omitempty"`
+	WifiAccess                     []SemanticTagWifiNetwork         `json:"wifiAccess,omitempty"`
 }
 
 func (s *SemanticTag) IsValid() bool {
@@ -80,10 +101,21 @@ func (s *SemanticTag) IsValid() bool {
 func (s *SemanticTag) GetValidationErrors() []string {
 	var validationErrors []string
 	// Only validate what is validatable
-	if s.WifiAccess != nil && !s.WifiAccess.IsValid() {
-		validationErrors = append(validationErrors, s.WifiAccess.GetValidationErrors()...)
+	if s.WifiAccess != nil {
+		for _, wifiAccess := range s.WifiAccess {
+			if !wifiAccess.IsValid() {
+				validationErrors = append(validationErrors, wifiAccess.GetValidationErrors()...)
+			}
+		}
 	}
 	return validationErrors
+}
+
+// SemanticTagEventDateInfo Representation of https://developer.apple.com/documentation/walletpasses/semantictagtype/eventdateinfo-data.dictionary
+type SemanticTagEventDateInfo struct {
+	DateDescription string     `json:"dateDescription,omitempty"`
+	IsTentative     bool       `json:"isTentative,omitempty"`
+	OriginalDate    *time.Time `json:"originalDate,omitempty"`
 }
 
 // SemanticTagCurrencyAmount Representation of https://developer.apple.com/documentation/walletpasses/semantictagtype/currencyamount
