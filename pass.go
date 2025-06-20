@@ -605,3 +605,20 @@ func (prd *PassRelevantDate) GetValidationErrors() []string {
 
 	return validationErrors
 }
+
+func (p *Pass) SetRelevantDates(d []PassRelevantDate) {
+
+	if len(d) == 0 {
+		return
+	}
+	minDate := d[0].StartDate
+
+	for _, pdr := range d {
+		if pdr.StartDate.Before(*minDate) {
+			minDate = pdr.StartDate
+		}
+	}
+
+	p.RelevantDates = d
+	p.RelevantDate = minDate
+}
