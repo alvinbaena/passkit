@@ -5,6 +5,57 @@ import (
 	"time"
 )
 
+func getBasicRelevantDate() PassRelevantDate {
+	t := time.Now()
+	return PassRelevantDate{StartDate: (*time.Time)(&t)}
+}
+
+func TestPassRelevantDate_Invalid(t *testing.T) {
+	prd := new(PassRelevantDate)
+
+	if prd.IsValid() {
+		t.Errorf("PassRelevantDate should be invalid")
+	}
+
+	if len(prd.GetValidationErrors()) == 0 {
+		t.Errorf("PassRelevantDate should have errors")
+	}
+}
+
+func TestPassRelevantDate_JSONMarshallingSingleDate(t *testing.T) {
+	unixTimeUTC := time.Unix(1405544146, 0)
+	prd := PassRelevantDate{StartDate: (*time.Time)(&unixTimeUTC)}
+
+	prdJSON, err := prd.toJSON()
+
+	if err != nil {
+		t.Errorf("PassRelevantDate JSON Marshalling failed. Reason %v", err)
+	}
+
+	prdJSONString := string(prdJSON)
+	expected := "{\"relevantDate\":\"2014-07-16T21:55:46+01:00\"}"
+	if prdJSONString != expected {
+		t.Errorf("PassRelevantDate JSON did not matched expected format")
+	}
+}
+
+func TestPassRelevantDate_JSONMarshallingDateRange(t *testing.T) {
+	unixTimeUTC := time.Unix(1405544146, 0)
+	prd := PassRelevantDate{StartDate: (*time.Time)(&unixTimeUTC), EndDate: (*time.Time)(&unixTimeUTC)}
+
+	prdJSON, err := prd.toJSON()
+
+	if err != nil {
+		t.Errorf("PassRelevantDate JSON Marshalling failed. Reason %v", err)
+	}
+
+	prdJSONString := string(prdJSON)
+	expected := "{\"startDate\":\"2014-07-16T21:55:46+01:00\",\"endDate\":\"2014-07-16T21:55:46+01:00\"}"
+	if prdJSONString != expected {
+		t.Errorf("PassRelevantDate JSON did not matched expected format")
+	}
+}
+
 func getBasicPersonalization() Personalization {
 	return Personalization{
 		Description:        "Description for pass",
