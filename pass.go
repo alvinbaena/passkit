@@ -3,10 +3,11 @@ package passkit
 import (
 	"encoding/json"
 	"fmt"
-	"gopkg.in/go-playground/colors.v1"
 	"strconv"
 	"strings"
 	"time"
+
+	"gopkg.in/go-playground/colors.v1"
 )
 
 type BarcodeFormat string
@@ -106,6 +107,7 @@ type Pass struct {
 	MaxDistance                int64                  `json:"maxDistance,omitempty"`
 	RelevantDate               *time.Time             `json:"relevantDate,omitempty"`
 	ExpirationDate             *time.Time             `json:"expirationDate,omitempty"`
+	RelevantDates              []PassRelevantDate     `json:"relevantDates,omitempty"`
 	Voided                     bool                   `json:"voided,omitempty"`
 	Nfc                        *NFC                   `json:"nfc,omitempty"`
 	SharingProhibited          bool                   `json:"sharingProhibited,omitempty"`
@@ -251,6 +253,14 @@ func (p *Pass) GetValidationErrors() []string {
 
 	if p.Semantics != nil && !p.Semantics.IsValid() {
 		validationErrors = append(validationErrors, p.Semantics.GetValidationErrors()...)
+	}
+
+	if p.RelevantDates != nil {
+		for _, prd := range p.RelevantDates {
+			if !prd.IsValid() {
+				validationErrors = append(validationErrors, prd.GetValidationErrors()...)
+			}
+		}
 	}
 
 	return validationErrors
@@ -557,4 +567,58 @@ func (pz *Personalization) GetValidationErrors() []string {
 	}
 
 	return validationErrors
+}
+
+type PassRelevantDate struct {
+	StartDate *time.Time
+	EndDate   *time.Time
+}
+
+func (prd PassRelevantDate) MarshalJSON() ([]byte, error) {
+	if prd.EndDate != nil {
+		return json.Marshal(&struct {
+			StartDate *time.Time `json:"startDate"`
+			EndDate   *time.Time `json:"endDate"`
+		}{
+			StartDate: prd.StartDate,
+			EndDate:   prd.EndDate,
+		})
+	} else {
+		return json.Marshal(&struct {
+			RelevantDate *time.Time `json:"relevantDate"`
+		}{
+			RelevantDate: prd.StartDate,
+		})
+	}
+}
+
+func (prd *PassRelevantDate) IsValid() bool {
+	return len(prd.GetValidationErrors()) == 0
+}
+
+func (prd *PassRelevantDate) GetValidationErrors() []string {
+	var validationErrors []string
+
+	if prd.StartDate == nil {
+		validationErrors = append(validationErrors, "PassRelevantDate: Not all required Fields are set: startDate")
+	}
+
+	return validationErrors
+}
+
+func (p *Pass) SetRelevantDates(d []PassRelevantDate) {
+
+	if len(d) == 0 {
+		return
+	}
+	minDate := d[0].StartDate
+
+	for _, pdr := range d {
+		if pdr.StartDate.Before(*minDate) {
+			minDate = pdr.StartDate
+		}
+	}
+
+	p.RelevantDates = d
+	p.RelevantDate = minDate
 }
