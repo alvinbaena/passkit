@@ -574,7 +574,7 @@ type PassRelevantDate struct {
 	EndDate   *time.Time
 }
 
-func (prd *PassRelevantDate) toJSON() ([]byte, error) {
+func (prd PassRelevantDate) MarshalJSON() ([]byte, error) {
 	if prd.EndDate != nil {
 		return json.Marshal(&struct {
 			StartDate *time.Time `json:"startDate"`

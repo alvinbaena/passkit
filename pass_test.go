@@ -26,7 +26,7 @@ func TestPassRelevantDate_JSONMarshallingSingleDate(t *testing.T) {
 	unixTimeUTC := time.Date(2025, time.June, 19, 01, 23, 45, 0, time.UTC)
 	prd := PassRelevantDate{StartDate: (*time.Time)(&unixTimeUTC)}
 
-	prdJSON, err := prd.toJSON()
+	prdJSON, err := prd.MarshalJSON()
 
 	if err != nil {
 		t.Errorf("PassRelevantDate JSON Marshalling failed. Reason %v", err)
@@ -43,7 +43,7 @@ func TestPassRelevantDate_JSONMarshallingDateRange(t *testing.T) {
 	unixTimeUTC := time.Date(2025, time.June, 19, 01, 23, 45, 0, time.UTC)
 	prd := PassRelevantDate{StartDate: (*time.Time)(&unixTimeUTC), EndDate: (*time.Time)(&unixTimeUTC)}
 
-	prdJSON, err := prd.toJSON()
+	prdJSON, err := prd.MarshalJSON()
 
 	if err != nil {
 		t.Errorf("PassRelevantDate JSON Marshalling failed. Reason %v", err)
