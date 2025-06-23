@@ -1,6 +1,8 @@
-module github.com/alvinbaena/passkit
+module github.com/raileasyuk/passkit-go
 
-go 1.17
+go 1.23.0
+
+toolchain go1.24.1
 
 require (
 	go.mozilla.org/pkcs7 v0.0.0-20210826202110-33d05740a352
