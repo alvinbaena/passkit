@@ -620,5 +620,5 @@ func (p *Pass) SetRelevantDates(d []PassRelevantDate) {
 	}
 
 	p.RelevantDates = d
-	p.RelevantDate = minDate
+	//p.RelevantDate = minDate
 }
