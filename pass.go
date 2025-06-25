@@ -585,7 +585,7 @@ func (prd PassRelevantDate) MarshalJSON() ([]byte, error) {
 		})
 	} else {
 		return json.Marshal(&struct {
-			RelevantDate *time.Time `json:"relevantDate"`
+			RelevantDate *time.Time `json:"date"`
 		}{
 			RelevantDate: prd.StartDate,
 		})
