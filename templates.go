@@ -90,7 +90,7 @@ func (m *InMemoryPassTemplate) ProvisionPassAtDirectory(tmpDirPath string) error
 		// Convert forward slashes to OS-specific path separators for file system operations.
 		osPath := filepath.FromSlash(file)
 		fullPath := filepath.Join(dst, osPath)
-		
+
 		// Create parent directories if needed.
 		if dir := filepath.Dir(fullPath); dir != dst {
 			err = os.MkdirAll(dir, 0755)
@@ -99,7 +99,7 @@ func (m *InMemoryPassTemplate) ProvisionPassAtDirectory(tmpDirPath string) error
 				return err
 			}
 		}
-		
+
 		err = os.WriteFile(fullPath, d, 0644)
 		if err != nil {
 			_ = os.RemoveAll(dst)
@@ -184,5 +184,5 @@ func (m *InMemoryPassTemplate) pathForLocale(name string, locale string) string 
 	}
 
 	// Use forward slashes for archive/manifest consistency.
-	return locale + ".lproj/" + name
+	return locale + filepath.Join(".lproj", name)
 }
