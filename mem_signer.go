@@ -84,6 +84,10 @@ func (m *memorySigner) SignManifestFile(manifestJson []byte, i *SigningInformati
 func (m *memorySigner) hashFiles(files map[string][]byte) (map[string]string, error) {
 	ret := make(map[string]string)
 	for name, data := range files {
+		// Skip .DS_Store files.
+		if name == ".DS_Store" {
+			continue
+		}
 		hash := sha1.Sum(data)
 		ret[name] = fmt.Sprintf("%x", hash)
 	}

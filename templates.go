@@ -87,7 +87,20 @@ func (m *InMemoryPassTemplate) ProvisionPassAtDirectory(tmpDirPath string) error
 	}
 
 	for file, d := range m.files {
-		err = os.WriteFile(filepath.Join(dst, string(file)), d, 0644)
+		// Convert forward slashes to OS-specific path separators for file system operations.
+		osPath := filepath.FromSlash(file)
+		fullPath := filepath.Join(dst, osPath)
+		
+		// Create parent directories if needed.
+		if dir := filepath.Dir(fullPath); dir != dst {
+			err = os.MkdirAll(dir, 0755)
+			if err != nil {
+				_ = os.RemoveAll(dst)
+				return err
+			}
+		}
+		
+		err = os.WriteFile(fullPath, d, 0644)
 		if err != nil {
 			_ = os.RemoveAll(dst)
 			return err
@@ -170,5 +183,6 @@ func (m *InMemoryPassTemplate) pathForLocale(name string, locale string) string 
 		return name
 	}
 
-	return filepath.Join(locale+".lproj", name)
+	// Use forward slashes for archive/manifest consistency.
+	return locale + ".lproj/" + name
 }

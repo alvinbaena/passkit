@@ -143,6 +143,11 @@ func loadDir(src string) (map[string][]byte, error) {
 			return nil
 		}
 
+		// Skip .DS_Store files.
+		if d.Name() == ".DS_Store" {
+			return nil
+		}
+
 		b, err := os.ReadFile(path)
 		if err != nil {
 			return err
