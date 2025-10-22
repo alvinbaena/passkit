@@ -172,7 +172,7 @@ func (m *InMemoryPassTemplate) AddAllFiles(directoryWithFilesToAdd string) error
 	}
 
 	for name, data := range loaded {
-		m.files[name] = data
+		m.files[filepath.Base(name)] = data
 	}
 
 	return nil
@@ -183,6 +183,5 @@ func (m *InMemoryPassTemplate) pathForLocale(name string, locale string) string 
 		return name
 	}
 
-	// Use forward slashes for archive/manifest consistency.
-	return locale + filepath.Join(".lproj", name)
+	return filepath.Join(locale+".lproj", name)
 }
