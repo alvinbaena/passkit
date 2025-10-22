@@ -116,7 +116,7 @@ func copyDir(src string, dst string) (err error) {
 // CopyDir recursively copies a directory tree, attempting to preserve permissions.
 // Source directory must exist, destination directory must *not* exist.
 // Symlinks are ignored and skipped.
-func loadDir(src string) (map[string][]byte, error) {
+func loadDir(src string) (files map[string][]byte, err error) {
 	src = filepath.Clean(src)
 
 	si, err := os.Stat(src)
@@ -126,8 +126,6 @@ func loadDir(src string) (map[string][]byte, error) {
 	if !si.IsDir() {
 		return nil, fmt.Errorf("source is not a directory")
 	}
-
-	files := make(map[string][]byte)
 
 	err = filepath.WalkDir(src, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
@@ -167,7 +165,7 @@ func loadDir(src string) (map[string][]byte, error) {
 		return nil, err
 	}
 
-	return files, nil
+	return
 }
 
 func addFiles(w *zip.Writer, basePath, baseInZip string) error {

@@ -120,7 +120,7 @@ func (f *fileSigner) hashFiles(tmpDir string) (map[string]string, error) {
 	ret := make(map[string]string)
 	for name, data := range files {
 		hash := sha1.Sum(data)
-		ret[name] = fmt.Sprintf("%x", hash)
+		ret[filepath.Base(name)] = fmt.Sprintf("%x", hash)
 	}
 
 	return ret, nil
