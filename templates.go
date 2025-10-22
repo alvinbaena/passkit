@@ -59,7 +59,7 @@ func (f *FolderPassTemplate) GetAllFiles() (map[string][]byte, error) {
 
 	ret := make(map[string][]byte)
 	for name, data := range loaded {
-		ret[filepath.Base(name)] = data
+		ret[name] = data
 	}
 
 	return ret, err
@@ -159,7 +159,7 @@ func (m *InMemoryPassTemplate) AddAllFiles(directoryWithFilesToAdd string) error
 	}
 
 	for name, data := range loaded {
-		m.files[filepath.Base(name)] = data
+		m.files[name] = data
 	}
 
 	return nil

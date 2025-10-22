@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -115,7 +116,7 @@ func copyDir(src string, dst string) (err error) {
 // CopyDir recursively copies a directory tree, attempting to preserve permissions.
 // Source directory must exist, destination directory must *not* exist.
 // Symlinks are ignored and skipped.
-func loadDir(src string) (files map[string][]byte, err error) {
+func loadDir(src string) (map[string][]byte, error) {
 	src = filepath.Clean(src)
 
 	si, err := os.Stat(src)
@@ -126,57 +127,61 @@ func loadDir(src string) (files map[string][]byte, err error) {
 		return nil, fmt.Errorf("source is not a directory")
 	}
 
-	entries, err := os.ReadDir(src)
+	files := make(map[string][]byte)
+
+	err = filepath.WalkDir(src, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() {
+			return nil
+		}
+
+		// Skip symlinks.
+		if d.Type()&os.ModeSymlink != 0 {
+			return nil
+		}
+
+		b, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+
+		rel, err := filepath.Rel(src, path)
+		if err != nil {
+			rel = filepath.Base(path)
+		}
+
+		// Use forward slashes for archive/manifest consistency.
+		files[filepath.ToSlash(rel)] = b
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	for _, entry := range entries {
-		srcPath := filepath.Join(src, entry.Name())
-
-		if entry.IsDir() {
-			files, err = loadDir(srcPath)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			// Skip symlinks.
-			if entry.Type()&os.ModeSymlink != 0 {
-				continue
-			}
-
-			f, err := os.ReadFile(srcPath)
-			if err != nil {
-				return nil, err
-			}
-
-			if files == nil {
-				files = make(map[string][]byte)
-			}
-
-			files[srcPath] = f
-		}
-	}
-
-	return
+	return files, nil
 }
 
 func addFiles(w *zip.Writer, basePath, baseInZip string) error {
-	// Open the Directory
 	files, err := os.ReadDir(basePath)
 	if err != nil {
 		return err
 	}
 
 	for _, file := range files {
+		fullPath := filepath.Join(basePath, file.Name())
 		if !file.IsDir() {
-			dat, err := os.ReadFile(basePath + file.Name())
+			dat, err := os.ReadFile(fullPath)
 			if err != nil {
 				return err
 			}
 
-			// Add some files to the archive.
-			f, err := w.Create(baseInZip + file.Name())
+			// Build the entry name using forward slashes
+			entryName := filepath.ToSlash(filepath.Join(baseInZip, file.Name()))
+			f, err := w.Create(entryName)
 			if err != nil {
 				return err
 			}
@@ -184,11 +189,13 @@ func addFiles(w *zip.Writer, basePath, baseInZip string) error {
 			if err != nil {
 				return err
 			}
-		} else if file.IsDir() {
-
-			// Recurse
-			newBase := basePath + file.Name() + "/"
-			return addFiles(w, newBase, file.Name()+"/")
+		} else {
+			// Recurse into the directory
+			newBase := filepath.Join(basePath, file.Name())
+			newBaseInZip := filepath.ToSlash(filepath.Join(baseInZip, file.Name())) + "/"
+			if err := addFiles(w, newBase, newBaseInZip); err != nil {
+				return err
+			}
 		}
 	}
 
