@@ -6,8 +6,9 @@ import (
 )
 
 func getBasicRelevantDate() PassRelevantDate {
-	t := time.Now()
-	return PassRelevantDate{StartDate: (*time.Time)(&t)}
+	startT := time.Now()
+	endT := startT.Add(time.Hour * 1)
+	return PassRelevantDate{StartDate: (*time.Time)(&startT), EndDate: (*time.Time)(&endT)}
 }
 
 func TestPassRelevantDate_Invalid(t *testing.T) {
@@ -24,16 +25,16 @@ func TestPassRelevantDate_Invalid(t *testing.T) {
 
 func TestPassRelevantDate_JSONMarshallingSingleDate(t *testing.T) {
 	unixTimeUTC := time.Date(2025, time.June, 19, 01, 23, 45, 0, time.UTC)
-	prd := PassRelevantDate{StartDate: (*time.Time)(&unixTimeUTC)}
+	prd := PassRelevantDate{Date: (*time.Time)(&unixTimeUTC)}
 
-	prdJSON, err := prd.MarshalJSON()
+	prdJSON, err := prd.toJSON()
 
 	if err != nil {
 		t.Errorf("PassRelevantDate JSON Marshalling failed. Reason %v", err)
 	}
 
 	prdJSONString := string(prdJSON)
-	expected := "{\"relevantDate\":\"2025-06-19T01:23:45Z\"}"
+	expected := "{\"date\":\"2025-06-19T01:23:45Z\"}"
 	if prdJSONString != expected {
 		t.Errorf("PassRelevantDate JSON did not matched expected format")
 	}
@@ -43,7 +44,7 @@ func TestPassRelevantDate_JSONMarshallingDateRange(t *testing.T) {
 	unixTimeUTC := time.Date(2025, time.June, 19, 01, 23, 45, 0, time.UTC)
 	prd := PassRelevantDate{StartDate: (*time.Time)(&unixTimeUTC), EndDate: (*time.Time)(&unixTimeUTC)}
 
-	prdJSON, err := prd.MarshalJSON()
+	prdJSON, err := prd.toJSON()
 
 	if err != nil {
 		t.Errorf("PassRelevantDate JSON Marshalling failed. Reason %v", err)
@@ -1056,20 +1057,28 @@ func TestPWAssociatedApp_GetSet(t *testing.T) {
 	}
 }
 
-func TestSetRelevantDates(t *testing.T) {
-	pass := getBasicPass()
+func TestPassRelevantDate_GetSet(t *testing.T) {
 
-	earlyDate := time.Date(2025, time.June, 19, 01, 23, 45, 0, time.UTC)
 	pdr := getBasicRelevantDate()
-	earlierPDR := PassRelevantDate{StartDate: (*time.Time)(&earlyDate)}
 
-	var dates []PassRelevantDate
+	if !pdr.IsValid() {
+		t.Errorf("PassRelevantDate should be valid. Reason: %v", pdr.GetValidationErrors())
+	}
 
-	dates = append(dates, pdr)
-	dates = append(dates, earlierPDR)
-	pass.SetRelevantDates(dates)
+	unixTimeUTC := time.Date(2025, time.June, 19, 01, 23, 45, 0, time.UTC)
+	pdr.Date = (*time.Time)(&unixTimeUTC)
 
-	if pass.RelevantDate != &earlyDate {
-		t.Error("relevantDate was not set to earliest date within slice")
+	if pdr.IsValid() {
+		t.Error("PassRelevantDate should not be valid after Date is set with StartDate and EndDate")
+	}
+
+	pdr.StartDate = nil
+	if pdr.IsValid() {
+		t.Error("PassRelevantDate should not be valid after Date is set with EndDate")
+	}
+
+	pdr.EndDate = nil
+	if !pdr.IsValid() {
+		t.Errorf("PassRelevantDate should be valid. Reason: %v", pdr.GetValidationErrors())
 	}
 }

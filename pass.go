@@ -570,26 +570,13 @@ func (pz *Personalization) GetValidationErrors() []string {
 }
 
 type PassRelevantDate struct {
-	StartDate *time.Time
-	EndDate   *time.Time
+	Date      *time.Time `json:"date,omitempty"`
+	StartDate *time.Time `json:"startDate,omitempty"`
+	EndDate   *time.Time `json:"endDate,omitempty"`
 }
 
-func (prd PassRelevantDate) MarshalJSON() ([]byte, error) {
-	if prd.EndDate != nil {
-		return json.Marshal(&struct {
-			StartDate *time.Time `json:"startDate"`
-			EndDate   *time.Time `json:"endDate"`
-		}{
-			StartDate: prd.StartDate,
-			EndDate:   prd.EndDate,
-		})
-	} else {
-		return json.Marshal(&struct {
-			RelevantDate *time.Time `json:"date"`
-		}{
-			RelevantDate: prd.StartDate,
-		})
-	}
+func (prd PassRelevantDate) toJSON() ([]byte, error) {
+	return json.Marshal(prd)
 }
 
 func (prd *PassRelevantDate) IsValid() bool {
@@ -599,26 +586,31 @@ func (prd *PassRelevantDate) IsValid() bool {
 func (prd *PassRelevantDate) GetValidationErrors() []string {
 	var validationErrors []string
 
-	if prd.StartDate == nil {
-		validationErrors = append(validationErrors, "PassRelevantDate: Not all required Fields are set: startDate")
+	if prd.Date != nil {
+		if prd.StartDate != nil {
+			validationErrors = append(validationErrors, "PassRelevantDate: StartDate cannot be used in conjunction with Date. Please use one or the other")
+		}
+		if prd.EndDate != nil {
+			validationErrors = append(validationErrors, "PassRelevantDate: EndDate cannot be used in conjunction with Date. Please use one or the other")
+		}
+		// Return early so we don't duplicate error messages below
+		return validationErrors
 	}
-
-	return validationErrors
-}
-
-func (p *Pass) SetRelevantDates(d []PassRelevantDate) {
-
-	if len(d) == 0 {
-		return
-	}
-	minDate := d[0].StartDate
-
-	for _, pdr := range d {
-		if pdr.StartDate.Before(*minDate) {
-			minDate = pdr.StartDate
+	if prd.StartDate != nil {
+		if prd.EndDate == nil {
+			validationErrors = append(validationErrors, "PassRelevantDate: EndDate must also be defined when using StartDate. Use Date for a single value")
 		}
 	}
 
-	p.RelevantDates = d
-	//p.RelevantDate = minDate
+	if prd.EndDate != nil {
+		if prd.StartDate == nil {
+			validationErrors = append(validationErrors, "PassRelevantDate: StartDate must also be defined when using EndDate. Use Date for a single value")
+		}
+	}
+
+	if prd.Date == nil && prd.StartDate == nil && prd.EndDate == nil {
+		validationErrors = append(validationErrors, "PassRelevantDate: Either Date alone, or StartDate and EndDate be defined.")
+	}
+
+	return validationErrors
 }
