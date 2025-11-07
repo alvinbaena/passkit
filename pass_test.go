@@ -5,6 +5,58 @@ import (
 	"time"
 )
 
+func getBasicRelevantDate() PassRelevantDate {
+	startT := time.Now()
+	endT := startT.Add(time.Hour * 1)
+	return PassRelevantDate{StartDate: (*time.Time)(&startT), EndDate: (*time.Time)(&endT)}
+}
+
+func TestPassRelevantDate_Invalid(t *testing.T) {
+	prd := new(PassRelevantDate)
+
+	if prd.IsValid() {
+		t.Errorf("PassRelevantDate should be invalid")
+	}
+
+	if len(prd.GetValidationErrors()) == 0 {
+		t.Errorf("PassRelevantDate should have errors")
+	}
+}
+
+func TestPassRelevantDate_JSONMarshallingSingleDate(t *testing.T) {
+	unixTimeUTC := time.Date(2025, time.June, 19, 01, 23, 45, 0, time.UTC)
+	prd := PassRelevantDate{Date: (*time.Time)(&unixTimeUTC)}
+
+	prdJSON, err := prd.toJSON()
+
+	if err != nil {
+		t.Errorf("PassRelevantDate JSON Marshalling failed. Reason %v", err)
+	}
+
+	prdJSONString := string(prdJSON)
+	expected := "{\"date\":\"2025-06-19T01:23:45Z\"}"
+	if prdJSONString != expected {
+		t.Errorf("PassRelevantDate JSON did not matched expected format")
+	}
+}
+
+func TestPassRelevantDate_JSONMarshallingDateRange(t *testing.T) {
+	unixTimeUTC := time.Date(2025, time.June, 19, 01, 23, 45, 0, time.UTC)
+	prd := PassRelevantDate{StartDate: (*time.Time)(&unixTimeUTC), EndDate: (*time.Time)(&unixTimeUTC)}
+
+	prdJSON, err := prd.toJSON()
+
+	if err != nil {
+		t.Errorf("PassRelevantDate JSON Marshalling failed. Reason %v", err)
+	}
+
+	prdJSONString := string(prdJSON)
+	expected := "{\"startDate\":\"2025-06-19T01:23:45Z\",\"endDate\":\"2025-06-19T01:23:45Z\"}"
+	if prdJSONString != expected {
+		t.Errorf("PassRelevantDate JSON did not matched expected format")
+	}
+}
+
 func getBasicPersonalization() Personalization {
 	return Personalization{
 		Description:        "Description for pass",
@@ -1002,5 +1054,31 @@ func TestPWAssociatedApp_GetSet(t *testing.T) {
 
 	if len(pw.GetValidationErrors()) != 0 {
 		t.Errorf("PWAssociatedApp should have no errors. Have: %v", len(pw.GetValidationErrors()))
+	}
+}
+
+func TestPassRelevantDate_GetSet(t *testing.T) {
+
+	pdr := getBasicRelevantDate()
+
+	if !pdr.IsValid() {
+		t.Errorf("PassRelevantDate should be valid. Reason: %v", pdr.GetValidationErrors())
+	}
+
+	unixTimeUTC := time.Date(2025, time.June, 19, 01, 23, 45, 0, time.UTC)
+	pdr.Date = (*time.Time)(&unixTimeUTC)
+
+	if pdr.IsValid() {
+		t.Error("PassRelevantDate should not be valid after Date is set with StartDate and EndDate")
+	}
+
+	pdr.StartDate = nil
+	if pdr.IsValid() {
+		t.Error("PassRelevantDate should not be valid after Date is set with EndDate")
+	}
+
+	pdr.EndDate = nil
+	if !pdr.IsValid() {
+		t.Errorf("PassRelevantDate should be valid. Reason: %v", pdr.GetValidationErrors())
 	}
 }
