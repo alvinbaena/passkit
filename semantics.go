@@ -91,6 +91,7 @@ type SemanticTag struct {
 	VenuePhoneNumber               string                           `json:"venuePhoneNumber,omitempty"`
 	VenueRegionName                string                           `json:"venueRegionName,omitempty"`
 	VenueRoom                      string                           `json:"venueRoom,omitempty"`
+	RelevantDates                  []PassRelevantDate               `json:"relevantDates,omitempty"`
 	WifiAccess                     []SemanticTagWifiNetwork         `json:"wifiAccess,omitempty"`
 }
 
@@ -114,6 +115,8 @@ func (s *SemanticTag) GetValidationErrors() []string {
 // SemanticTagEventDateInfo Representation of https://developer.apple.com/documentation/walletpasses/semantictagtype/eventdateinfo-data.dictionary
 type SemanticTagEventDateInfo struct {
 	DateDescription string     `json:"dateDescription,omitempty"`
+	Date            *time.Time `json:"date,omitempty"`
+	TimeZone        string     `json:"timeZone,omitempty"`
 	IsTentative     bool       `json:"isTentative,omitempty"`
 	OriginalDate    *time.Time `json:"originalDate,omitempty"`
 }

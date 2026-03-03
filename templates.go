@@ -17,6 +17,9 @@ const (
 	BundleLogoRetinaHD                = "logo@3x.png"
 	BundleLogoRetina                  = "logo@2x.png"
 	BundleLogo                        = "logo.png"
+	BundleSecondaryLogoRetinaHD       = "secondaryLogo@3x.png"
+	BundleSecondaryLogoRetina         = "secondaryLogo@2x.png"
+	BundleSecondaryLogo               = "secondaryLogo.png"
 	BundleThumbnailRetinaHD           = "thumbnail@3x.png"
 	BundleThumbnailRetina             = "thumbnail@2x.png"
 	BundleThumbnail                   = "thumbnail.png"
@@ -32,6 +35,12 @@ const (
 	BundlePersonalizationLogoRetinaHD = "personalizationLogo@3x.png"
 	BundlePersonalizationLogoRetina   = "personalizationLogo@2x.png"
 	BundlePersonalizationLogo         = "personalizationLogo.png"
+	BundleArtworkRetinaHD             = "artwork@3x.png"
+	BundleArtworkRetina               = "artwork@2x.png"
+	BundleArtwork                     = "artwork.png"
+	BundleVenueMapRetinaHD            = "venueMap@3x.png"
+	BundleVenueMapRetina              = "venueMap@2x.png"
+	BundleVenueMap                    = "venueMap.png"
 )
 
 type PassTemplate interface {
@@ -172,7 +181,7 @@ func (m *InMemoryPassTemplate) AddAllFiles(directoryWithFilesToAdd string) error
 	}
 
 	for name, data := range loaded {
-		m.files[filepath.Base(name)] = data
+		m.files[name] = data
 	}
 
 	return nil
