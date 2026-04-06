@@ -91,6 +91,7 @@ type Pass struct {
 	LogoText                   string                 `json:"logoText,omitempty"`
 	ForegroundColor            string                 `json:"foregroundColor,omitempty"`
 	BackgroundColor            string                 `json:"backgroundColor,omitempty"`
+	FooterBackgroundColor      string                 `json:"footerBackgroundColor,omitempty"`
 	LabelColor                 string                 `json:"labelColor,omitempty"`
 	GroupingIdentifier         string                 `json:"groupingIdentifier,omitempty"`
 	Beacons                    []Beacon               `json:"beacons,omitempty"`
@@ -112,6 +113,13 @@ type Pass struct {
 	Nfc                        *NFC                   `json:"nfc,omitempty"`
 	SharingProhibited          bool                   `json:"sharingProhibited,omitempty"`
 	Semantics                  *SemanticTag           `json:"semantics,omitempty"`
+	EventDetail                *EventDetail           `json:"eventDetail,omitempty"`
+	VenueDetail                *VenueDetail           `json:"venueDetail,omitempty"`
+	TicketDetail               *TicketDetail          `json:"ticketDetail,omitempty"`
+	PreferredStyleSchemes      []string               `json:"preferredStyleSchemes,omitempty"`
+	UpcomingPassInformation    []UpcomingPass         `json:"upcomingPassInformation,omitempty"`
+	BagPolicyURL               string                 `json:"bagPolicyURL,omitempty"`
+	OrderFoodURL               string                 `json:"orderFoodURL,omitempty"`
 
 	//Private
 	associatedApps []PWAssociatedApp
@@ -165,6 +173,23 @@ func (p *Pass) SetLabelColorRGB(r, g, b uint8) error {
 	rgb, _ := colors.RGB(r, g, b)
 
 	p.LabelColor = rgb.String()
+	return nil
+}
+
+func (p *Pass) SetFooterBackgroundColorHex(hex string) error {
+	h, err := colors.ParseHEX(hex)
+	if err != nil {
+		return err
+	}
+
+	p.FooterBackgroundColor = h.ToRGB().String()
+	return nil
+}
+
+func (p *Pass) SetFooterBackgroundColorRGB(r, g, b uint8) error {
+	rgb, _ := colors.RGB(r, g, b)
+
+	p.FooterBackgroundColor = rgb.String()
 	return nil
 }
 
@@ -263,6 +288,16 @@ func (p *Pass) GetValidationErrors() []string {
 		}
 	}
 
+	if p.EventDetail != nil && !p.EventDetail.IsValid() {
+		validationErrors = append(validationErrors, p.EventDetail.GetValidationErrors()...)
+	}
+	if p.VenueDetail != nil && !p.VenueDetail.IsValid() {
+		validationErrors = append(validationErrors, p.VenueDetail.GetValidationErrors()...)
+	}
+	if p.TicketDetail != nil && !p.TicketDetail.IsValid() {
+		validationErrors = append(validationErrors, p.TicketDetail.GetValidationErrors()...)
+	}
+
 	return validationErrors
 }
 
@@ -272,11 +307,12 @@ func NewGenericPass() *GenericPass {
 
 // GenericPass Representation of https://developer.apple.com/documentation/walletpasses/pass/generic
 type GenericPass struct {
-	HeaderFields    []Field `json:"headerFields,omitempty"`
-	PrimaryFields   []Field `json:"primaryFields,omitempty"`
-	SecondaryFields []Field `json:"secondaryFields,omitempty"`
-	AuxiliaryFields []Field `json:"auxiliaryFields,omitempty"`
-	BackFields      []Field `json:"backFields,omitempty"`
+	HeaderFields         []Field `json:"headerFields,omitempty"`
+	PrimaryFields        []Field `json:"primaryFields,omitempty"`
+	SecondaryFields      []Field `json:"secondaryFields,omitempty"`
+	AuxiliaryFields      []Field `json:"auxiliaryFields,omitempty"`
+	BackFields           []Field `json:"backFields,omitempty"`
+	AdditionalInfoFields []Field `json:"additionalInfoFields,omitempty"`
 }
 
 func (gp *GenericPass) AddHeaderField(field Field) {
@@ -298,6 +334,9 @@ func (gp *GenericPass) AddAuxiliaryFields(field Field) {
 func (gp *GenericPass) AddBackFields(field Field) {
 	gp.BackFields = append(gp.BackFields, field)
 }
+func (gp *GenericPass) AddAdditionalInfoFields(field Field) {
+	gp.AdditionalInfoFields = append(gp.AdditionalInfoFields, field)
+}
 
 func (gp *GenericPass) IsValid() bool {
 	return len(gp.GetValidationErrors()) == 0
@@ -312,6 +351,7 @@ func (gp *GenericPass) GetValidationErrors() []string {
 	fields = append(fields, gp.SecondaryFields)
 	fields = append(fields, gp.AuxiliaryFields)
 	fields = append(fields, gp.BackFields)
+	fields = append(fields, gp.AdditionalInfoFields)
 
 	for _, fieldList := range fields {
 		for _, field := range fieldList {
@@ -374,6 +414,72 @@ type StoreCard struct {
 
 func NewStoreCard() *StoreCard {
 	return &StoreCard{GenericPass: NewGenericPass()}
+}
+
+// EventDetail Representation of https://developer.apple.com/documentation/walletpasses/pass/eventdetail
+type EventDetail struct {
+	EventName       string     `json:"eventName,omitempty"`
+	EventSubtitle   string     `json:"eventSubtitle,omitempty"`
+	EventStartDate  *time.Time `json:"eventStartDate,omitempty"`
+	EventEndDate    *time.Time `json:"eventEndDate,omitempty"`
+	EventAddress    string     `json:"eventAddress,omitempty"`
+	EventLocation   *Location  `json:"eventLocation,omitempty"`
+	EventWebsiteURL string     `json:"eventWebsiteURL,omitempty"`
+}
+
+func (e *EventDetail) IsValid() bool {
+	return len(e.GetValidationErrors()) == 0
+}
+
+func (e *EventDetail) GetValidationErrors() []string {
+	var validationErrors []string
+	if e.EventLocation != nil && !e.EventLocation.IsValid() {
+		validationErrors = append(validationErrors, e.EventLocation.GetValidationErrors()...)
+	}
+	return validationErrors
+}
+
+// VenueDetail Representation of https://developer.apple.com/documentation/walletpasses/pass/venuedetail
+type VenueDetail struct {
+	VenueName        string    `json:"venueName,omitempty"`
+	VenueSubtitle    string    `json:"venueSubtitle,omitempty"`
+	VenueAddress     string    `json:"venueAddress,omitempty"`
+	VenueLocation    *Location `json:"venueLocation,omitempty"`
+	VenueEntrance    string    `json:"venueEntrance,omitempty"`
+	VenuePhoneNumber string    `json:"venuePhoneNumber,omitempty"`
+	VenueWebsiteURL  string    `json:"venueWebsiteURL,omitempty"`
+}
+
+func (v *VenueDetail) IsValid() bool {
+	return len(v.GetValidationErrors()) == 0
+}
+
+func (v *VenueDetail) GetValidationErrors() []string {
+	var validationErrors []string
+	if v.VenueLocation != nil && !v.VenueLocation.IsValid() {
+		validationErrors = append(validationErrors, v.VenueLocation.GetValidationErrors()...)
+	}
+	return validationErrors
+}
+
+// TicketDetail Representation of https://developer.apple.com/documentation/walletpasses/pass/ticketdetail
+type TicketDetail struct {
+	TicketType        string `json:"ticketType,omitempty"`
+	TicketDescription string `json:"ticketDescription,omitempty"`
+	TicketNumber      string `json:"ticketNumber,omitempty"`
+	TicketSection     string `json:"ticketSection,omitempty"`
+	TicketRow         string `json:"ticketRow,omitempty"`
+	TicketSeat        string `json:"ticketSeat,omitempty"`
+	TicketLevel       string `json:"ticketLevel,omitempty"`
+	TicketGate        string `json:"ticketGate,omitempty"`
+}
+
+func (t *TicketDetail) IsValid() bool {
+	return len(t.GetValidationErrors()) == 0
+}
+
+func (t *TicketDetail) GetValidationErrors() []string {
+	return nil
 }
 
 // Field Representation of https://developer.apple.com/documentation/walletpasses/passfieldcontent
@@ -577,6 +683,17 @@ type PassRelevantDate struct {
 
 func (prd PassRelevantDate) toJSON() ([]byte, error) {
 	return json.Marshal(prd)
+}
+
+type UpcomingPass struct {
+	Identifier      string                       `json:"identifier,omitempty"`
+	Name            string                       `json:"name,omitempty"`
+	Type            string                       `json:"type,omitempty"`
+	DateInformation *UpcomingPassDateInformation `json:"dateInformation,omitempty"`
+}
+type UpcomingPassDateInformation struct {
+	Date     *time.Time `json:"date,omitempty"`
+	TimeZone string     `json:"timeZone,omitempty"`
 }
 
 func (prd *PassRelevantDate) IsValid() bool {
