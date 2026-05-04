@@ -17,11 +17,18 @@ const (
 	passJsonFileName            = "pass.json"
 	personalizationJsonFileName = "personalization.json"
 	signatureFileName           = "signature"
+
+	maxPassesPerBundle = 10
+	maxBundleSizeBytes = 150 * 1024 * 1024 // 150 MB
 )
 
+type PassArchive []byte
+type PassBundleArchive []byte
+
 type Signer interface {
-	CreateSignedAndZippedPassArchive(p *Pass, t PassTemplate, i *SigningInformation) ([]byte, error)
-	CreateSignedAndZippedPersonalizedPassArchive(p *Pass, pz *Personalization, t PassTemplate, i *SigningInformation) ([]byte, error)
+	CreateSignedAndZippedPassArchive(p *Pass, t PassTemplate, i *SigningInformation) (PassArchive, error)
+	CreateSignedAndZippedPersonalizedPassArchive(p *Pass, pz *Personalization, t PassTemplate, i *SigningInformation) (PassArchive, error)
+	CreatePassBundleArchive(passArchives ...PassArchive) (PassBundleArchive, error)
 	SignManifestFile(manifestJson []byte, i *SigningInformation) ([]byte, error)
 }
 
