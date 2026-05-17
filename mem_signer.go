@@ -15,11 +15,11 @@ func NewMemoryBasedSigner() Signer {
 	return &memorySigner{}
 }
 
-func (m *memorySigner) CreateSignedAndZippedPassArchive(p *Pass, t PassTemplate, i *SigningInformation) ([]byte, error) {
+func (m *memorySigner) CreateSignedAndZippedPassArchive(p *Pass, t PassTemplate, i *SigningInformation) (PassArchive, error) {
 	return m.CreateSignedAndZippedPersonalizedPassArchive(p, nil, t, i)
 }
 
-func (m *memorySigner) CreateSignedAndZippedPersonalizedPassArchive(p *Pass, pz *Personalization, t PassTemplate, i *SigningInformation) ([]byte, error) {
+func (m *memorySigner) CreateSignedAndZippedPersonalizedPassArchive(p *Pass, pz *Personalization, t PassTemplate, i *SigningInformation) (PassArchive, error) {
 	originalFiles, err := t.GetAllFiles()
 	if err != nil {
 		return nil, err
@@ -75,6 +75,39 @@ func (m *memorySigner) CreateSignedAndZippedPersonalizedPassArchive(p *Pass, pz 
 	}
 
 	return z, nil
+}
+
+func (m *memorySigner) CreatePassBundleArchive(passArchives ...PassArchive) (PassBundleArchive, error) {
+	if len(passArchives) == 0 {
+		return nil, fmt.Errorf("pass bundle must contain at least one pass")
+	}
+	if len(passArchives) > maxPassesPerBundle {
+		return nil, fmt.Errorf("pass bundle must not contain more than %d passes", maxPassesPerBundle)
+	}
+
+	buf := new(bytes.Buffer)
+	w := zip.NewWriter(buf)
+
+	for idx, pa := range passArchives {
+		f, err := w.Create(fmt.Sprintf("pass%d.pkpass", idx+1))
+		if err != nil {
+			return nil, err
+		}
+		if _, err := f.Write(pa); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := w.Close(); err != nil {
+		return nil, err
+	}
+
+	bundleBytes := buf.Bytes()
+	if len(bundleBytes) > maxBundleSizeBytes {
+		return nil, fmt.Errorf("pass bundle exceeds the maximum size of 150 MB")
+	}
+
+	return bundleBytes, nil
 }
 
 func (m *memorySigner) SignManifestFile(manifestJson []byte, i *SigningInformation) ([]byte, error) {

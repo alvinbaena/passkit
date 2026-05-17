@@ -17,11 +17,11 @@ func NewFileBasedSigner() Signer {
 	return &fileSigner{}
 }
 
-func (f *fileSigner) CreateSignedAndZippedPassArchive(p *Pass, t PassTemplate, i *SigningInformation) ([]byte, error) {
+func (f *fileSigner) CreateSignedAndZippedPassArchive(p *Pass, t PassTemplate, i *SigningInformation) (PassArchive, error) {
 	return f.CreateSignedAndZippedPersonalizedPassArchive(p, nil, t, i)
 }
 
-func (f *fileSigner) CreateSignedAndZippedPersonalizedPassArchive(p *Pass, pz *Personalization, t PassTemplate, i *SigningInformation) ([]byte, error) {
+func (f *fileSigner) CreateSignedAndZippedPersonalizedPassArchive(p *Pass, pz *Personalization, t PassTemplate, i *SigningInformation) (PassArchive, error) {
 	dir, err := os.MkdirTemp("", "pass")
 	if err != nil {
 		return nil, err
@@ -63,6 +63,39 @@ func (f *fileSigner) CreateSignedAndZippedPersonalizedPassArchive(p *Pass, pz *P
 
 	//Fail silently
 	_ = os.RemoveAll(dir)
+	return z, nil
+}
+
+func (f *fileSigner) CreatePassBundleArchive(passArchives ...PassArchive) (PassBundleArchive, error) {
+	if len(passArchives) == 0 {
+		return nil, fmt.Errorf("pass bundle must contain at least one pass")
+	}
+	if len(passArchives) > maxPassesPerBundle {
+		return nil, fmt.Errorf("pass bundle must not contain more than %d passes", maxPassesPerBundle)
+	}
+
+	dir, err := os.MkdirTemp("", "passbundle")
+	if err != nil {
+		return nil, err
+	}
+	defer os.RemoveAll(dir)
+
+	for idx, pa := range passArchives {
+		filename := filepath.Join(dir, fmt.Sprintf("pass%d.pkpass", idx+1))
+		if err := os.WriteFile(filename, pa, 0644); err != nil {
+			return nil, err
+		}
+	}
+
+	z, err := f.createZipFile(dir)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(z) > maxBundleSizeBytes {
+		return nil, fmt.Errorf("pass bundle exceeds the maximum size of 150 MB")
+	}
+
 	return z, nil
 }
 
