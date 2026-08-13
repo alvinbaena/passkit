@@ -2,11 +2,13 @@ package passkit
 
 import (
 	"io"
+	"maps"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -75,6 +77,7 @@ func (f *FolderPassTemplate) GetAllFiles() (map[string][]byte, error) {
 }
 
 type InMemoryPassTemplate struct {
+	mu    sync.RWMutex
 	files map[string][]byte
 }
 
@@ -90,12 +93,12 @@ func (m *InMemoryPassTemplate) ProvisionPassAtDirectory(tmpDirPath string) error
 		return err
 	}
 
-	err = os.MkdirAll(dst, os.ModeDir)
+	err = os.MkdirAll(dst, 0700)
 	if err != nil {
-		return nil
+		return err
 	}
 
-	for file, d := range m.files {
+	for file, d := range m.copyOfFiles() {
 		// Convert forward slashes to OS-specific path separators for file system operations.
 		osPath := filepath.FromSlash(file)
 		fullPath := filepath.Join(dst, osPath)
@@ -120,14 +123,18 @@ func (m *InMemoryPassTemplate) ProvisionPassAtDirectory(tmpDirPath string) error
 }
 
 func (m *InMemoryPassTemplate) GetAllFiles() (map[string][]byte, error) {
-	return m.files, nil
+	return m.copyOfFiles(), nil
 }
 
 func (m *InMemoryPassTemplate) AddFileBytes(name string, data []byte) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.files[name] = data
 }
 
 func (m *InMemoryPassTemplate) AddFileBytesLocalized(name, locale string, data []byte) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.files[m.pathForLocale(name, locale)] = data
 }
 
@@ -159,6 +166,8 @@ func (m *InMemoryPassTemplate) AddFileFromURL(name string, u url.URL) error {
 		return err
 	}
 
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.files[name] = b
 	return nil
 }
@@ -169,6 +178,8 @@ func (m *InMemoryPassTemplate) AddFileFromURLLocalized(name, locale string, u ur
 		return err
 	}
 
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.files[m.pathForLocale(name, locale)] = b
 	return nil
 }
@@ -180,9 +191,9 @@ func (m *InMemoryPassTemplate) AddAllFiles(directoryWithFilesToAdd string) error
 		return err
 	}
 
-	for name, data := range loaded {
-		m.files[name] = data
-	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	maps.Copy(m.files, loaded)
 
 	return nil
 }
@@ -193,4 +204,14 @@ func (m *InMemoryPassTemplate) pathForLocale(name string, locale string) string 
 	}
 
 	return filepath.Join(locale+".lproj", name)
+}
+
+func (m *InMemoryPassTemplate) copyOfFiles() map[string][]byte {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	files := make(map[string][]byte, len(m.files))
+	maps.Copy(files, m.files)
+
+	return files
 }
