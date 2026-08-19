@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"go.mozilla.org/pkcs7"
-	"golang.org/x/crypto/pkcs12"
+	"software.sslmate.com/src/go-pkcs12"
 )
 
 const (
